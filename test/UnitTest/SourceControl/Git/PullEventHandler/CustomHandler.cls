@@ -1,5 +1,5 @@
 /// Tests that a pull event handler living in the repository itself can be used
-/// on an instance where it has not been loaded/compiled yet - see issue #1000.
+/// on an instance where it has not been loaded/compiled yet
 Class UnitTest.SourceControl.Git.PullEventHandler.CustomHandler Extends UnitTest.SourceControl.Git.AbstractTest
 {
 
