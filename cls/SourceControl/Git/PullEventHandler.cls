@@ -34,8 +34,7 @@ ClassMethod ForModifications(ByRef files, pullEventClass As %String) As %Status
             $data(pullEventClass)#2: pullEventClass,
             1: ##class(SourceControl.Git.Utils).PullEventClass())
         set log = ##class(SourceControl.Git.DeploymentLog).%New()
-        set log.HeadRevision = ##class(SourceControl.Git.Utils).GetCurrentRevision()
-        set log.StartTimestamp = $zdatetime($ztimestamp,3)
+        do log.StartLog(##class(SourceControl.Git.Utils).GetCurrentRevision())
         set st = log.%Save()
         quit:$$$ISERR(st)
         set st = ..BootstrapPullEventHandler(handlerClass)
@@ -53,8 +52,7 @@ ClassMethod ForModifications(ByRef files, pullEventClass As %String) As %Status
         catch pullError {
             set st = pullError.AsStatus()
         }
-        set log.EndTimestamp = $zdatetime($ztimestamp,3)
-        set log.Status = st
+        do log.FinalizeLog(st)
         set st = log.%Save()  // this hides any errors returned or thrown by OnPull()
         quit:$$$ISERR(st)
     } catch err {
