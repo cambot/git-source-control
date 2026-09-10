@@ -33,13 +33,17 @@ ClassMethod ForModifications(ByRef files, pullEventClass As %String) As %Status
         set handlerClass = $select(
             $data(pullEventClass)#2: pullEventClass,
             1: ##class(SourceControl.Git.Utils).PullEventClass())
-        set st = ..BootstrapPullEventHandler(handlerClass)
-        quit:$$$ISERR(st)
         set log = ##class(SourceControl.Git.DeploymentLog).%New()
         set log.HeadRevision = ##class(SourceControl.Git.Utils).GetCurrentRevision()
         set log.StartTimestamp = $zdatetime($ztimestamp,3)
         set st = log.%Save()
         quit:$$$ISERR(st)
+        set st = ..BootstrapPullEventHandler(handlerClass)
+        if $$$ISERR(st) {
+            do log.FinalizeLog(st)
+            do log.%Save()
+            quit
+        }
         set event = $classmethod(handlerClass,"%New")
         set event.LocalRoot = ##class(SourceControl.Git.Utils).TempFolder()
         merge event.ModifiedFiles = files
@@ -60,7 +64,7 @@ ClassMethod ForModifications(ByRef files, pullEventClass As %String) As %Status
 }
 
 /// Makes sure <var>class</var> is compiled and can be instantiated, loading it from the
-/// local repository if needed. 
+/// local repository if needed.
 ClassMethod BootstrapPullEventHandler(class As %String) As %Status [ Private ]
 {
     quit:$$$comClassDefined(class) $$$OK
